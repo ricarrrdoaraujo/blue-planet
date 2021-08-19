@@ -1,20 +1,35 @@
 #include <iostream>
-#include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <stb_image.h>
+#include <cassert>
 
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+const int Width = 800;
+const int Height = 600;
 
 int main()
 {
-	glm::vec3 V{ 1, 2, 3 };
+	// initialize GLFW
+	assert(glfwInit());
 
-	glfwInit();
+	// Create window
+	GLFWwindow* Window = glfwCreateWindow(Width, Height, "Blue Planet", nullptr, nullptr);
+	assert(Window);
 
-	glewInit();
+	// Start event loop
+	while (!glfwWindowShouldClose(Window))
+	{
+		// Process all events on GLFW event queue 
+		// Can be keyboard events, mouse or gamepad events
+		glfwPollEvents();
 
-	std::cout << glm::to_string(V) << std::endl;
+		// Send framebuffer content of window to be draw on screen
+		glfwSwapBuffers(Window);
+	}
+
+
+	// End GLFW
+	glfwTerminate();
+
+	
 	return 0;
 }
