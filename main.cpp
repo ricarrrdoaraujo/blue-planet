@@ -56,7 +56,7 @@ int main()
 	// Activate VertexBuffer as the buffer where we copy the triangle data to
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 
-	//Copy data do video memory
+	//Copy data into video memory
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), Triangle.data(), GL_STATIC_DRAW);
 
 	//Define background color
@@ -73,8 +73,8 @@ int main()
 		//tells opengl that VertexBuffer will be the buffer active in the moment
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 
-		// Inform to opengl where in the VertexBuffer are the vertices 
-		// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertices 
+		// Inform to opengl where in the VertexBuffer are the vertexes 
+		// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertexes 
 		// is needed to draw the triangle
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
