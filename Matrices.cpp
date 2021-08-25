@@ -69,9 +69,35 @@ void ScaleMatrix()
 	std::cout << std::endl;
 }
 
+void RotationMatrix()
+{
+	std::cout << std::endl;
+	std::cout << "=================" << std::endl;
+	std::cout << "Rotation Matrix" << std::endl;
+	std::cout << "=================" << std::endl;
+
+	glm::mat4 I = glm::identity<glm::mat4>();
+	constexpr float Angle = glm::radians(90.0f);
+	glm::vec3 Axis{ 0, 0, 1 };
+	glm::mat4 Rotation = glm::rotate(I, Angle, Axis);
+
+	PrintMatrix(Rotation);
+
+	glm::vec4 Position{ 100, 0, 0, 1 };
+	glm::vec4 Direction{ 100, 0, 0, 0 };
+
+	Position = Rotation * Position;
+	Direction = Rotation * Direction;
+
+	std::cout << glm::to_string(Position) << std::endl;
+	std::cout << glm::to_string(Direction) << std::endl;
+	std::cout << std::endl;
+}
+
 int main()
 {
 	TranslationMatrix();
 	ScaleMatrix();
+	RotationMatrix();
 	return 0;
 }
