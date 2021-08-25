@@ -94,10 +94,62 @@ void RotationMatrix()
 	std::cout << std::endl;
 }
 
+void ComposedMatrices()
+{
+	std::cout << std::endl;
+	std::cout << "=================" << std::endl;
+	std::cout << "Composed Matrices" << std::endl;
+	std::cout << "=================" << std::endl;
+
+	glm::mat4 I = glm::identity<glm::mat4>();
+
+	//Translation Matrix
+	glm::vec3 T{ 0, 10, 0 };
+	glm::mat4 Translation = glm::translate(I, T);
+
+	//Rotation Matrix
+	constexpr float Angle = glm::radians(45.0f);
+	glm::vec3 Axis{ 0, 0, 1 };
+	glm::mat4 Rotation = glm::rotate(I, Angle, Axis);
+
+	//Scale Matrix
+	glm::vec3 ScaleAmount{ 2, 2, 0 };
+	glm::mat4 Scale = glm::scale(I, ScaleAmount);
+
+	std::cout << "Translation " << std::endl;
+	PrintMatrix(Translation);
+	std::cout << std::endl;
+
+	std::cout << "Rotation " << std::endl;
+	PrintMatrix(Rotation);
+	std::cout << std::endl;
+
+	std::cout << "Scale " << std::endl;
+	PrintMatrix(Scale);
+	std::cout << std::endl;
+
+	glm::vec4 Position{ 1, 1, 0, 1 };
+	glm::vec4 Direction{ 1, 1, 0, 0 };
+
+	//Transform
+	//This sequence: Translation * Rotation * Scale
+	glm::mat4 ModelMatrix = Translation * Rotation * Scale;
+
+	std::cout << "Model Matrix " << std::endl;
+	PrintMatrix(ModelMatrix);
+	std::cout << std::endl;
+
+	Position = ModelMatrix * Position;
+	Direction = ModelMatrix * Direction;
+	std::cout << glm::to_string(Position) << std::endl;
+	std::cout << glm::to_string(Direction) << std::endl;
+}
+
 int main()
 {
 	TranslationMatrix();
 	ScaleMatrix();
 	RotationMatrix();
+	ComposedMatrices();
 	return 0;
 }
