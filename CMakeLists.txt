@@ -23,3 +23,5 @@ add_executable(Vectors Vectors.cpp)
 
 target_include_directories(Vectors PRIVATE deps/glm)
 
+add_executable(Matrices Matrices.cpp)
+target_include_directories(Matrices PRIVATE deps/glm)
