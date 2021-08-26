@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <array>
+#include <fstream>
 
 #include <GL/glew.h>
 
@@ -11,6 +12,18 @@
 
 const int Width = 800;
 const int Height = 600;
+
+std::string ReadFile(const char* FilePath)
+{
+	std::string FileContents;
+	if (std::ifstream FileStream{ FilePath, std::ios::in })
+	{
+		//Read inside FileContent the content on file pointed by FilePath
+		FileContents.assign(std::istreambuf_iterator<char>(FileStream), std::istreambuf_iterator<char>());
+	}
+
+	return FileContents;
+};
 
 int main()
 {
@@ -40,6 +53,10 @@ int main()
 	std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+
+	std::string VertexShaderSource = ReadFile("shaders/triangle_vert.glsl");
+
+	std::cout << VertexShaderSource << std::endl;
 
 	//Define a triangle in normalized coordinates
 	std::array<glm::vec3, 3> Triangle = {
