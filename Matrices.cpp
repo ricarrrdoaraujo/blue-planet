@@ -145,11 +145,50 @@ void ComposedMatrices()
 	std::cout << glm::to_string(Direction) << std::endl;
 }
 
+void ModelViewProjection()
+{
+	std::cout << std::endl;
+	std::cout << "=================" << std::endl;
+	std::cout << "Model View Projection" << std::endl;
+	std::cout << "=================" << std::endl;
+
+	// Model is a matrix coposed by translation transformation, rotation ans scale. Is a composed matrix
+	glm::mat4 ModelMatrix = glm::identity<glm::mat4>();
+
+	// View
+	glm::vec3 Eye{ 0, 0, 10 };
+	glm::vec3 Center{0, 0, 0};
+	glm::vec3 Up{0, 1, 0};
+	glm::mat4 ViewMatrix = glm::lookAt(Eye, Center, Up);
+
+	std::cout << "View" << std::endl;
+	PrintMatrix(ViewMatrix);
+
+	constexpr float FoV = glm::radians(45.0f);
+	const float AspectRatio = 800.0f / 600.0f;
+	const float Near = 1.0f;
+	const float Far = 1000.0f;
+	glm::mat4 ProjectionMatrix = glm::perspective(FoV, AspectRatio, Near, Far);
+
+	std::cout << "Projection" << std::endl;
+	PrintMatrix(ProjectionMatrix);
+
+	glm::mat4 ModelViewProjection = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+	std::cout << "Model View Projection" << std::endl;
+	PrintMatrix(ModelViewProjection);
+
+	glm::vec4 Position{ 0, 0, 0, 1 };
+	Position = ModelViewProjection * Position;
+	std::cout << glm::to_string(Position) << std::endl;
+}
+
 int main()
 {
 	TranslationMatrix();
 	ScaleMatrix();
 	RotationMatrix();
 	ComposedMatrices();
+	ModelViewProjection();
 	return 0;
 }
