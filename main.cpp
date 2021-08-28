@@ -158,9 +158,9 @@ int main()
 	//Model Matrix
 	glm::mat4 ModelMatrix = glm::identity<glm::mat4>();
 
-	//Viiew Matrix
+	//View Matrix
 	glm::vec3 Eye{ 0, 0, 5 };
-	glm::vec3 Center{ 0, 1, 0 };
+	glm::vec3 Center{ 0, 0, 0 };
 	glm::vec3 Up{0, 1, 0};
 	glm::mat4 ViewMatrix = glm::lookAt(Eye, Center, Up);
 
@@ -203,6 +203,9 @@ int main()
 		//Clear framebuffer. GL_COLOR_BUFFER_BIT clear color buffer and fullfil with the color defined on glClearColor
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// Activate shader program
+		glUseProgram(ProgramId);
+
 		glEnableVertexAttribArray(0);
 		
 		//tells opengl that VertexBuffer will be the buffer active in the moment
@@ -218,6 +221,9 @@ int main()
 		// Revert state 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDisableVertexAttribArray(0);
+
+		//Disable active program
+		glUseProgram(0);
 
 		// Process all events on GLFW event queue 
 		// Can be keyboard events, mouse or gamepad events
