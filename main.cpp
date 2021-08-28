@@ -105,6 +105,8 @@ int main()
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
+	GLuint ProgramId = LoadShaders("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
+
 	//Define a triangle in normalized coordinates
 	std::array<glm::vec3, 3> Triangle = {
 		glm::vec3{ -1.0f, -1.0f, 0.0f },
