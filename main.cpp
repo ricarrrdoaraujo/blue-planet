@@ -117,6 +117,12 @@ GLuint LoadShaders(const char* VertexShaderFile, const char* FragmentShaderFile)
 	return ProgramId;
 }
 
+struct Vertex
+{
+	glm::vec3 Position;
+	glm::vec3 Color;
+};
+
 int main()
 {
 
@@ -149,10 +155,10 @@ int main()
 	GLuint ProgramId = LoadShaders("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
 
 	//Define a triangle in normalized coordinates
-	std::array<glm::vec3, 3> Triangle = {
-		glm::vec3{ -1.0f, -1.0f, 0.0f },
-		glm::vec3{ 1.0f, -1.0f, 0.0f },
-		glm::vec3{ 0.0f, 1.0f, 0.0f }
+	std::array<Vertex, 3> Triangle = {
+		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{1.0f, 0.0f, 0.0f}},
+		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f }, glm::vec3{0.0f, 1.0f, 0.0f}},
+		Vertex{ glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 1.0f}}
 	};
 
 	//Model Matrix
@@ -175,11 +181,11 @@ int main()
 	glm::mat4 ModelViewProjection = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
 	//Apply ModelViewProjection on triangle vertexes
-	for (glm::vec3& Vertex : Triangle)
+	for (Vertex& Vertex : Triangle)
 	{
-		glm::vec4 ProjectedVertex = ModelViewProjection * glm::vec4{ Vertex, 1.0f };
+		glm::vec4 ProjectedVertex = ModelViewProjection * glm::vec4{ Vertex.Position, 1.0f };
 		ProjectedVertex /= ProjectedVertex.w;
-		Vertex = ProjectedVertex;
+		Vertex.Position = ProjectedVertex;
 	}
 
 	//Copy triangle vertices to GPU memory
@@ -195,7 +201,7 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), Triangle.data(), GL_STATIC_DRAW);
 
 	//Define background color
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
 	// Start event loop
 	while (!glfwWindowShouldClose(Window))
@@ -207,6 +213,7 @@ int main()
 		glUseProgram(ProgramId);
 
 		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
 		
 		//tells opengl that VertexBuffer will be the buffer active in the moment
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
@@ -214,13 +221,16 @@ int main()
 		// Inform to opengl where in the VertexBuffer are the vertexes 
 		// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertexes 
 		// is needed to draw the triangle
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), 
+			reinterpret_cast<void*>(offsetof(Vertex, Color)));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		// Revert state 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 
 		//Disable active program
 		glUseProgram(0);
