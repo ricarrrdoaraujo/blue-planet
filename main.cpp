@@ -25,6 +25,57 @@ std::string ReadFile(const char* FilePath)
 	return FileContents;
 };
 
+GLuint LoadShaders(const char* VertexShaderFile, const char* FragmentShaderFile)
+{
+	std::string VertexShaderSource = ReadFile(VertexShaderFile);
+	std::string FragmentShaderSource = ReadFile(FragmentShaderFile);
+
+	assert(!VertexShaderSource.empty());
+	assert(!FragmentShaderSource.empty());
+
+	//Create identifiers of Vertex and Fragment shaders
+	GLuint VertexShaderId = glCreateShader(GL_VERTEX_SHADER);
+	GLuint FragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+
+	std::cout << "Compiling " << VertexShaderFile << std::endl;
+	const char* VertexShaderSourcePtr = VertexShaderSource.c_str();
+	glShaderSource(VertexShaderId, 1, &VertexShaderSourcePtr, nullptr);
+	glCompileShader(VertexShaderId);
+	//Verify if compilation was successfull
+
+	std::cout << "Compiling " << FragmentShaderFile << std::endl;
+	const char* FragmentShaderSourcePtr = FragmentShaderSource.c_str();
+	glShaderSource(FragmentShaderId, 1, &FragmentShaderSourcePtr, nullptr);
+	glCompileShader(FragmentShaderId);
+	//Verify if compilation was successfull
+
+	std::cout << "Linking program" << std::endl;
+	GLuint ProgramId = glCreateProgram();
+	glAttachShader(ProgramId, VertexShaderId);
+	glAttachShader(ProgramId, FragmentShaderId);
+	glLinkProgram(ProgramId);
+
+	//Verify if program was linked
+	GLint Result = GL_TRUE;
+	glGetProgramiv(ProgramId, GL_LINK_STATUS, &Result);
+
+	if (Result == GL_FALSE)
+	{
+		//Get log to verify issue
+		std::cout << "Error on linking" << std::endl;
+
+		assert(false);
+	}
+
+	glDetachShader(ProgramId, VertexShaderId);
+	glDetachShader(ProgramId, FragmentShaderId);
+
+	glDeleteShader(VertexShaderId);
+	glDeleteShader(FragmentShaderId);
+
+	return ProgramId;
+}
+
 int main()
 {
 
@@ -53,10 +104,6 @@ int main()
 	std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-
-	std::string VertexShaderSource = ReadFile("shaders/triangle_vert.glsl");
-
-	std::cout << VertexShaderSource << std::endl;
 
 	//Define a triangle in normalized coordinates
 	std::array<glm::vec3, 3> Triangle = {
