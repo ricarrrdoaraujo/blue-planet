@@ -3,10 +3,12 @@
 layout (location = 0) in vec3 InPosition;
 layout (location = 1) in vec3 InColor;
 
+uniform mat4 ModelViewProjection;
+
 out vec3 Color;
 
 void main()
 {
-	Color = 1.0 - InColor;
-	gl_Position	= vec4(InPosition, 1.0);
+	Color = InColor;
+	gl_Position	= ModelViewProjection * vec4(InPosition, 1.0);
 }

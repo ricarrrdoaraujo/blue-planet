@@ -180,14 +180,6 @@ int main()
 	// ModelViewProjection
 	glm::mat4 ModelViewProjection = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
-	//Apply ModelViewProjection on triangle vertexes
-	for (Vertex& Vertex : Triangle)
-	{
-		glm::vec4 ProjectedVertex = ModelViewProjection * glm::vec4{ Vertex.Position, 1.0f };
-		ProjectedVertex /= ProjectedVertex.w;
-		Vertex.Position = ProjectedVertex;
-	}
-
 	//Copy triangle vertices to GPU memory
 	GLuint VertexBuffer;
 
@@ -211,6 +203,9 @@ int main()
 
 		// Activate shader program
 		glUseProgram(ProgramId);
+
+		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramId, "ModelViewProjection");
+		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
