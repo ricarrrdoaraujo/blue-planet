@@ -25,6 +25,33 @@ std::string ReadFile(const char* FilePath)
 	return FileContents;
 };
 
+void CheckShader(GLuint ShaderId)
+{
+	 // ShaderId must by a compiled shader identifier 
+	GLint Result = GL_TRUE;
+	glGetShaderiv(ShaderId, GL_COMPILE_STATUS, &Result);
+
+	if (Result == GL_FALSE)
+	{
+		//Error on compiling shader
+
+		//Get log size (in bytes)
+		GLint InfoLogLength = 0;
+		glGetShaderiv(ShaderId, GL_INFO_LOG_LENGTH, &InfoLogLength);
+
+		if (InfoLogLength > 0)
+		{
+			std::string ShaderInfoLog(InfoLogLength, '\0');
+			glGetShaderInfoLog(ShaderId, InfoLogLength, nullptr, &ShaderInfoLog[0]);
+
+			std::cout << "Error on shader" << std::endl;
+			std::cout << ShaderInfoLog << std::endl;
+
+			assert(false);
+		}
+	}
+}
+
 GLuint LoadShaders(const char* VertexShaderFile, const char* FragmentShaderFile)
 {
 	std::string VertexShaderSource = ReadFile(VertexShaderFile);
@@ -42,12 +69,14 @@ GLuint LoadShaders(const char* VertexShaderFile, const char* FragmentShaderFile)
 	glShaderSource(VertexShaderId, 1, &VertexShaderSourcePtr, nullptr);
 	glCompileShader(VertexShaderId);
 	//Verify if compilation was successfull
+	CheckShader(VertexShaderId);
 
 	std::cout << "Compiling " << FragmentShaderFile << std::endl;
 	const char* FragmentShaderSourcePtr = FragmentShaderSource.c_str();
 	glShaderSource(FragmentShaderId, 1, &FragmentShaderSourcePtr, nullptr);
 	glCompileShader(FragmentShaderId);
 	//Verify if compilation was successfull
+	CheckShader(FragmentShaderId);
 
 	std::cout << "Linking program" << std::endl;
 	GLuint ProgramId = glCreateProgram();
@@ -61,10 +90,22 @@ GLuint LoadShaders(const char* VertexShaderFile, const char* FragmentShaderFile)
 
 	if (Result == GL_FALSE)
 	{
-		//Get log to verify issue
-		std::cout << "Error on linking" << std::endl;
+		
 
-		assert(false);
+		GLint InfoLogLength = 0;
+		glGetProgramiv(ProgramId, GL_INFO_LOG_LENGTH, &InfoLogLength);
+
+		if (InfoLogLength > 0)
+		{
+			std::string ProgramInfoLog(InfoLogLength, '\0');
+			glGetProgramInfoLog(ProgramId, InfoLogLength, nullptr, &ProgramInfoLog[0]);
+
+			//Get log to verify issue
+			std::cout << "Error on linking" << std::endl;
+			std::cout << ProgramInfoLog << std::endl;
+
+			assert(false);
+		}
 	}
 
 	glDetachShader(ProgramId, VertexShaderId);
