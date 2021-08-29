@@ -10,6 +10,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 const int Width = 800;
 const int Height = 600;
 
@@ -117,6 +120,62 @@ GLuint LoadShaders(const char* VertexShaderFile, const char* FragmentShaderFile)
 	return ProgramId;
 }
 
+GLuint LoadTexture(const char* TextureFile)
+{
+	std::cout << "Loading texture " << TextureFile << std::endl;
+
+	stbi_set_flip_vertically_on_load(true);
+
+	int TextureWidth = 0;
+	int TextureHeight = 0;
+	int NumberOfComponents = 0;
+	//load texture on RAM memory
+	unsigned char* TextureData = stbi_load(
+		TextureFile,
+		&TextureWidth,
+		&TextureHeight,
+		&NumberOfComponents,
+		3);
+	assert(TextureData);
+
+	//Generate texture identifier
+	GLuint TextureId;
+	glGenTextures(1, &TextureId);
+
+	// enable texture to be modified
+	glBindTexture(GL_TEXTURE_2D, TextureId);
+
+	//copy texture to GPU
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_RGB,
+		TextureWidth,
+		TextureHeight,
+		0,
+		GL_RGB,
+		GL_UNSIGNED_BYTE, //because TextureData is unsigned char, char is one byte size
+		TextureData);
+
+	// Magnification a minification filters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); //solve aliasing issue
+
+	// Texture wrapping | GL_TEXTURE_WRAP_S - axis U | GL_TEXTURE_WRAP_T - axis V
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//Generate texture mipmap from texture
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	//unbind texture because is already has been copied to GPU
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(TextureData);
+
+	return TextureId;
+}
+
 struct Vertex
 {
 	glm::vec3 Position;
@@ -154,6 +213,8 @@ int main()
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
 	GLuint ProgramId = LoadShaders("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
+
+	GLuint TextureId = LoadTexture("textures/earth_2k.jpg");
 
 	//Define a triangle in normalized coordinates
 	//{Position, Color, UV}
@@ -208,6 +269,12 @@ int main()
 
 		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramId, "ModelViewProjection");
 		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, TextureId);
+
+		GLint TextureSamplerLoc = glGetUniformLocation(ProgramId, "TextureSampler");
+		glUniform1i(TextureSamplerLoc, 0);
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
