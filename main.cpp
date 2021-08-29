@@ -235,7 +235,7 @@ void MouseButtonCallback(GLFWwindow* Window, int Button, int Action, int Modifie
 	{
 		if (Action == GLFW_PRESS)
 		{
-			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //hide cursor
 			double X, Y;
 			glfwGetCursorPos(Window, &X, &Y);
 
