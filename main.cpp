@@ -218,10 +218,30 @@ int main()
 
 	//Define a triangle in normalized coordinates
 	//{Position, Color, UV}
-	std::array<Vertex, 3> Triangle = {
-		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2{0.0f, 0.0f}},
-		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f }, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2{1.0f, 0.0f}},
-		Vertex{ glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2{0.5f, 1.0f}}
+	std::array<Vertex, 6> Quad = {
+		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, 
+				glm::vec3{1.0f, 0.0f, 0.0f},
+				glm::vec2{0.0f, 0.0f}},
+
+		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f },
+				glm::vec3{0.0f, 1.0f, 0.0f},
+				glm::vec2{1.0f, 0.0f}},
+
+		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f},
+				glm::vec2{0.0f, 1.0f}},
+
+		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f},
+				glm::vec2{0.0f, 1.0f}},
+
+		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f },
+				glm::vec3{0.0f, 1.0f, 0.0f},
+				glm::vec2{1.0f, 0.0f}},
+
+		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f },
+				glm::vec3{1.0f, 0.0f, 0.0f},
+				glm::vec2{1.0f, 1.0f}} 
 	};
 
 	//Model Matrix
@@ -253,7 +273,7 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 
 	//Copy data into video memory
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), Triangle.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Quad), Quad.data(), GL_STATIC_DRAW);
 
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -292,7 +312,7 @@ int main()
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
 			reinterpret_cast<void*>(offsetof(Vertex, UV)));
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, Quad.size());
 
 		// Revert state 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

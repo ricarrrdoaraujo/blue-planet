@@ -9,9 +9,9 @@ out vec4 OutColor;
 
 void main()
 {
-	//OutColor = vec4(Color, 1.0);
-
+	float ColorIntensity = 1.0f;
 	vec3 TextureColor = texture(TextureSampler, UV).rgb;
+	vec3 FinalColor = ColorIntensity * TextureColor;
 
-	OutColor = vec4(TextureColor, 1.0);
+	OutColor = vec4(FinalColor, 1.0);
 }
