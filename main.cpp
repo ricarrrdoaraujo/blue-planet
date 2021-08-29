@@ -9,6 +9,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -221,6 +222,49 @@ public:
 };
 
 FlyCamera Camera;
+bool bEnableMouseMovement = false;
+glm::vec2 PreviousCursor{ 0.0f, 0.0f };
+
+void MouseButtonCallback(GLFWwindow* Window, int Button, int Action, int Modifiers)
+{
+	std::cout << "Button: " << Button <<
+		" Action: " << Action <<
+		" Modifiers: " << Modifiers << std::endl;
+
+	if (Button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		if (Action == GLFW_PRESS)
+		{
+			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			double X, Y;
+			glfwGetCursorPos(Window, &X, &Y);
+
+			PreviousCursor = glm::vec2{ X, Y };
+			bEnableMouseMovement = true;
+		}
+
+		if (Action == GLFW_RELEASE)
+		{
+			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			bEnableMouseMovement = false;
+		}
+	}
+				
+}
+
+void MouseMotionCallback(GLFWwindow* Window, double X, double Y)
+{
+	if (bEnableMouseMovement)
+	{
+		glm::vec2 CurrentCursor{ X, Y };
+		glm::vec2 DeltaCursor = CurrentCursor - PreviousCursor;
+
+		std::cout << glm::to_string(DeltaCursor) << std::endl;
+
+		PreviousCursor = CurrentCursor;
+	}
+	
+}
 
 int main()
 {
@@ -231,6 +275,10 @@ int main()
 	// Create window
 	GLFWwindow* Window = glfwCreateWindow(Width, Height, "Blue Planet", nullptr, nullptr);
 	assert(Window);
+
+	//sign callbacks on GLFW
+	glfwSetMouseButtonCallback(Window, MouseButtonCallback);
+	glfwSetCursorPosCallback(Window, MouseMotionCallback);
 
 	//Activate context created on window Window
 	glfwMakeContextCurrent(Window);
