@@ -183,6 +183,31 @@ struct Vertex
 	glm::vec2 UV;
 };
 
+class FlyCamera
+{
+public:
+
+	glm::mat4 GetViewProjection() const
+	{
+		glm::mat4 View = glm::lookAt(Location, Location + Direction, Up);
+		glm::mat4 Projection = glm::perspective(FieldOfView, AspectRatio, Near, Far);
+		return Projection * View;
+	}
+
+	//View Matrix Definition
+	glm::vec3 Location{ 0.0f, 0.0f, 10.0f };
+	glm::vec3 Direction{ 0.0f, 0.0f, -1.0f };
+	glm::vec3 Up{ 0.0f, 1.0f, 0.0f };
+
+	//Projection Matrix definition
+	float FieldOfView = glm::radians(45.0f);
+	float AspectRatio = Width / Height;
+	float Near = 0.01f;
+	float Far = 1000.0f;
+};
+
+FlyCamera Camera;
+
 int main()
 {
 
@@ -247,22 +272,6 @@ int main()
 	//Model Matrix
 	glm::mat4 ModelMatrix = glm::identity<glm::mat4>();
 
-	//View Matrix
-	glm::vec3 Eye{ 0, 0, 5 };
-	glm::vec3 Center{ 0, 0, 0 };
-	glm::vec3 Up{0, 1, 0};
-	glm::mat4 ViewMatrix = glm::lookAt(Eye, Center, Up);
-
-	// Projection Matrix
-	constexpr float FoV = glm::radians(45.0f);
-	const float AspectRatio = Width / Height;
-	const float Near = 0.001f;
-	const float Far = 1000.0f;
-	glm::mat4 ProjectionMatrix = glm::perspective(FoV, AspectRatio, Near, Far);
-
-	// ModelViewProjection
-	glm::mat4 ModelViewProjection = ProjectionMatrix * ViewMatrix * ModelMatrix;
-
 	//Copy triangle vertices to GPU memory
 	GLuint VertexBuffer;
 
@@ -286,6 +295,10 @@ int main()
 
 		// Activate shader program
 		glUseProgram(ProgramId);
+
+		glm::mat4 ViewProjectionMatrix = Camera.GetViewProjection();
+
+		glm::mat4 ModelViewProjection = ViewProjectionMatrix * ModelMatrix;
 
 		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramId, "ModelViewProjection");
 		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
