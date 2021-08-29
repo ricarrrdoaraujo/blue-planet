@@ -187,12 +187,26 @@ class FlyCamera
 {
 public:
 
+	void MoveForward(float Amount)
+	{
+		Location += glm::normalize(Direction) * Amount * Speed;
+	}
+
+	void MoveRight(float Amount)
+	{
+		glm::vec3 Right = glm::normalize(glm::cross(Direction, Up));
+		Location += Right * Amount * Speed;
+	}
+
 	glm::mat4 GetViewProjection() const
 	{
 		glm::mat4 View = glm::lookAt(Location, Location + Direction, Up);
 		glm::mat4 Projection = glm::perspective(FieldOfView, AspectRatio, Near, Far);
 		return Projection * View;
 	}
+
+	//Iterativity parameters
+	float Speed = 5.0f;
 
 	//View Matrix Definition
 	glm::vec3 Location{ 0.0f, 0.0f, 10.0f };
@@ -220,6 +234,9 @@ int main()
 
 	//Activate context created on window Window
 	glfwMakeContextCurrent(Window);
+
+	//Enable or disable V-Sync
+	glfwSwapInterval(1);
 
 	//Initialize glew
 	assert(glewInit() == GLEW_OK);
@@ -287,9 +304,19 @@ int main()
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
+	// store previous frame time
+	double PreviousTime = glfwGetTime();
+
 	// Start event loop
 	while (!glfwWindowShouldClose(Window))
 	{
+		double CurrentTime = glfwGetTime();
+		double DeltaTime = CurrentTime - PreviousTime;
+		if (DeltaTime > 0.0)
+		{
+			PreviousTime = CurrentTime;
+		}
+
 		//Clear framebuffer. GL_COLOR_BUFFER_BIT clear color buffer and fullfil with the color defined on glClearColor
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -342,6 +369,27 @@ int main()
 
 		// Send framebuffer content of window to be draw on screen
 		glfwSwapBuffers(Window);
+
+		// Process keyboard input
+		if (glfwGetKey(Window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			Camera.MoveForward(1.0f * DeltaTime);
+		}
+
+		if (glfwGetKey(Window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			Camera.MoveForward(-1.0f * DeltaTime);
+		}
+
+		if (glfwGetKey(Window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			Camera.MoveRight(-1.0f * DeltaTime);
+		}
+
+		if (glfwGetKey(Window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			Camera.MoveRight(1.0f * DeltaTime);
+		}
 	}
 
 	// Unalocate VertexBuffer
