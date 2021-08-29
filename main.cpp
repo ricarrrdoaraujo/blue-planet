@@ -121,6 +121,7 @@ struct Vertex
 {
 	glm::vec3 Position;
 	glm::vec3 Color;
+	glm::vec2 UV;
 };
 
 int main()
@@ -155,10 +156,11 @@ int main()
 	GLuint ProgramId = LoadShaders("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
 
 	//Define a triangle in normalized coordinates
+	//{Position, Color, UV}
 	std::array<Vertex, 3> Triangle = {
-		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{1.0f, 0.0f, 0.0f}},
-		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f }, glm::vec3{0.0f, 1.0f, 0.0f}},
-		Vertex{ glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 1.0f}}
+		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec2{0.0f, 0.0f}},
+		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f }, glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec2{1.0f, 0.0f}},
+		Vertex{ glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec3{0.0f, 0.0f, 1.0f}, glm::vec2{0.5f, 1.0f}}
 	};
 
 	//Model Matrix
@@ -209,6 +211,7 @@ int main()
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
 		
 		//tells opengl that VertexBuffer will be the buffer active in the moment
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
@@ -219,6 +222,8 @@ int main()
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), 
 			reinterpret_cast<void*>(offsetof(Vertex, Color)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+			reinterpret_cast<void*>(offsetof(Vertex, UV)));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -226,6 +231,7 @@ int main()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 
 		//Disable active program
 		glUseProgram(0);
