@@ -199,6 +199,21 @@ public:
 		Location += Right * Amount * Speed;
 	}
 
+	void Look(float Yaw, float Pitch)
+	{
+		Yaw *= Sensitivity;
+		Pitch *= Sensitivity;
+
+		glm::vec3 Right = glm::normalize(glm::cross(Direction, Up));
+
+		const glm::mat4 I = glm::identity<glm::mat4>();
+		glm::mat4 YawRotation = glm::rotate(I, glm::radians(Yaw), Up);
+		glm::mat4 PitchRotation = glm::rotate(I, glm::radians(Pitch), Right);
+
+		Up = PitchRotation * glm::vec4{ Up, 0.0f };
+		Direction = YawRotation * PitchRotation * glm::vec4{ Direction, 0.0f };
+	}
+
 	glm::mat4 GetViewProjection() const
 	{
 		glm::mat4 View = glm::lookAt(Location, Location + Direction, Up);
@@ -208,6 +223,7 @@ public:
 
 	//Iterativity parameters
 	float Speed = 5.0f;
+	float Sensitivity = 0.1f;
 
 	//View Matrix Definition
 	glm::vec3 Location{ 0.0f, 0.0f, 10.0f };
@@ -260,6 +276,8 @@ void MouseMotionCallback(GLFWwindow* Window, double X, double Y)
 		glm::vec2 DeltaCursor = CurrentCursor - PreviousCursor;
 
 		std::cout << glm::to_string(DeltaCursor) << std::endl;
+
+		Camera.Look(DeltaCursor.x, DeltaCursor.y);
 
 		PreviousCursor = CurrentCursor;
 	}
