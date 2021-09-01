@@ -335,21 +335,19 @@ int main()
 				glm::vec3{0.0f, 1.0f, 0.0f},
 				glm::vec2{1.0f, 0.0f}},
 
-		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
-				glm::vec3{0.0f, 0.0f, 1.0f},
-				glm::vec2{0.0f, 1.0f}},
-
-		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
-				glm::vec3{0.0f, 0.0f, 1.0f},
-				glm::vec2{0.0f, 1.0f}},
-
-		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f },
-				glm::vec3{0.0f, 1.0f, 0.0f},
-				glm::vec2{1.0f, 0.0f}},
-
 		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f },
 				glm::vec3{1.0f, 0.0f, 0.0f},
-				glm::vec2{1.0f, 1.0f}} 
+				glm::vec2{1.0f, 1.0f}},
+
+		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f},
+				glm::vec2{0.0f, 1.0f}},		
+	};
+
+	//Define list of elements that compose the triangles
+	std::array<glm::ivec3, 2> Indexes = {
+		glm::ivec3{ 0, 1, 3 },
+		glm::ivec3{ 3, 1, 2 }
 	};
 
 	//Model Matrix
@@ -358,14 +356,22 @@ int main()
 	//Copy triangle vertices to GPU memory
 	GLuint VertexBuffer;
 
-	// Ask OpenGL generate an identifier of VertexBuffer
+	// Ask OpenGL generate an identifier of VBO
 	glGenBuffers(1, &VertexBuffer);
+
+	//Ask OpenGL to generate EBO identifier
+	GLuint ElementBuffer = 0;
+	glGenBuffers(1, &ElementBuffer);
 
 	// Activate VertexBuffer as the buffer where we copy the triangle data to
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 
 	//Copy data into video memory
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Quad), Quad.data(), GL_STATIC_DRAW);
+
+	//Copy ElementBuffer data to GPU
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indexes), Indexes.data(), GL_STATIC_DRAW);
 
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -412,6 +418,7 @@ int main()
 		
 		//tells opengl that VertexBuffer will be the buffer active in the moment
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
 
 		// Inform to opengl where in the VertexBuffer are the vertexes 
 		// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertexes 
@@ -424,7 +431,8 @@ int main()
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		glDrawArrays(GL_TRIANGLES, 0, Quad.size());
+		//glDrawArrays(GL_TRIANGLES, 0, Quad.size());
+		glDrawElements(GL_TRIANGLES, Indexes.size() * 3, GL_UNSIGNED_INT, nullptr);
 
 		// Revert state 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
