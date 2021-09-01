@@ -373,6 +373,10 @@ int main()
 	// store previous frame time
 	double PreviousTime = glfwGetTime();
 
+	// Enable Backface culling
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	// Start event loop
 	while (!glfwWindowShouldClose(Window))
 	{
@@ -417,6 +421,8 @@ int main()
 			reinterpret_cast<void*>(offsetof(Vertex, Color)));
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
 			reinterpret_cast<void*>(offsetof(Vertex, UV)));
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glDrawArrays(GL_TRIANGLES, 0, Quad.size());
 
