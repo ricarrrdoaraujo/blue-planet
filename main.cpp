@@ -184,6 +184,83 @@ struct Vertex
 	glm::vec2 UV;
 };
 
+GLuint LoadGeometry()
+{
+	//Define a triangle in normalized coordinates
+	//{Position, Color, UV}
+	std::array<Vertex, 6> Quad = {
+		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f },
+				glm::vec3{1.0f, 0.0f, 0.0f},
+				glm::vec2{0.0f, 0.0f}},
+
+		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f },
+				glm::vec3{0.0f, 1.0f, 0.0f},
+				glm::vec2{1.0f, 0.0f}},
+
+		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f },
+				glm::vec3{1.0f, 0.0f, 0.0f},
+				glm::vec2{1.0f, 1.0f}},
+
+		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f},
+				glm::vec2{0.0f, 1.0f}},
+	};
+
+	//Define list of elements that compose the triangles
+	std::array<glm::ivec3, 2> Indexes = {
+		glm::ivec3{ 0, 1, 3 },
+		glm::ivec3{ 3, 1, 2 }
+	};
+
+	//Copy triangle vertices to GPU memory
+	GLuint VertexBuffer;
+
+	// Ask OpenGL generate an identifier of VBO
+	glGenBuffers(1, &VertexBuffer);
+
+	//Ask OpenGL to generate EBO identifier
+	GLuint ElementBuffer = 0;
+	glGenBuffers(1, &ElementBuffer);
+
+	// Activate VertexBuffer as the buffer where we copy the triangle data to
+	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+
+	//Copy data into video memory
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Quad), Quad.data(), GL_STATIC_DRAW);
+
+	//Copy ElementBuffer data to GPU
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indexes), Indexes.data(), GL_STATIC_DRAW);
+
+	//Generate Vertex Array Object (VAO)
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
+
+	//Enable VAO
+	glBindVertexArray(VAO);
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+
+	//tells opengl that VertexBuffer will be the buffer active in the moment
+	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
+
+	// Inform to opengl where in the VertexBuffer are the vertexes 
+	// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertexes 
+	// is needed to draw the triangle
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+		reinterpret_cast<void*>(offsetof(Vertex, Color)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+		reinterpret_cast<void*>(offsetof(Vertex, UV)));
+
+	glBindVertexArray(0);
+
+	return VAO;
+}
+
 class FlyCamera
 {
 public:
@@ -324,54 +401,10 @@ int main()
 
 	GLuint TextureId = LoadTexture("textures/earth_2k.jpg");
 
-	//Define a triangle in normalized coordinates
-	//{Position, Color, UV}
-	std::array<Vertex, 6> Quad = {
-		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f }, 
-				glm::vec3{1.0f, 0.0f, 0.0f},
-				glm::vec2{0.0f, 0.0f}},
-
-		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f },
-				glm::vec3{0.0f, 1.0f, 0.0f},
-				glm::vec2{1.0f, 0.0f}},
-
-		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f },
-				glm::vec3{1.0f, 0.0f, 0.0f},
-				glm::vec2{1.0f, 1.0f}},
-
-		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
-				glm::vec3{0.0f, 0.0f, 1.0f},
-				glm::vec2{0.0f, 1.0f}},		
-	};
-
-	//Define list of elements that compose the triangles
-	std::array<glm::ivec3, 2> Indexes = {
-		glm::ivec3{ 0, 1, 3 },
-		glm::ivec3{ 3, 1, 2 }
-	};
+	GLuint QuadVAO = LoadGeometry();
 
 	//Model Matrix
 	glm::mat4 ModelMatrix = glm::identity<glm::mat4>();
-
-	//Copy triangle vertices to GPU memory
-	GLuint VertexBuffer;
-
-	// Ask OpenGL generate an identifier of VBO
-	glGenBuffers(1, &VertexBuffer);
-
-	//Ask OpenGL to generate EBO identifier
-	GLuint ElementBuffer = 0;
-	glGenBuffers(1, &ElementBuffer);
-
-	// Activate VertexBuffer as the buffer where we copy the triangle data to
-	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
-
-	//Copy data into video memory
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Quad), Quad.data(), GL_STATIC_DRAW);
-
-	//Copy ElementBuffer data to GPU
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indexes), Indexes.data(), GL_STATIC_DRAW);
 
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -412,33 +445,14 @@ int main()
 		GLint TextureSamplerLoc = glGetUniformLocation(ProgramId, "TextureSampler");
 		glUniform1i(TextureSamplerLoc, 0);
 
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-		
-		//tells opengl that VertexBuffer will be the buffer active in the moment
-		glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
-
-		// Inform to opengl where in the VertexBuffer are the vertexes 
-		// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertexes 
-		// is needed to draw the triangle
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), 
-			reinterpret_cast<void*>(offsetof(Vertex, Color)));
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
-			reinterpret_cast<void*>(offsetof(Vertex, UV)));
+		glBindVertexArray(QuadVAO);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		//glDrawArrays(GL_TRIANGLES, 0, Quad.size());
-		glDrawElements(GL_TRIANGLES, Indexes.size() * 3, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-		// Revert state 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
+		glBindVertexArray(0);
 
 		//Disable active program
 		glUseProgram(0);
@@ -473,7 +487,7 @@ int main()
 	}
 
 	// Unalocate VertexBuffer
-	glDeleteBuffers(1, &VertexBuffer);
+	glDeleteVertexArrays(1, &QuadVAO);
 
 	// End GLFW
 	glfwTerminate();
