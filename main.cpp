@@ -2,6 +2,7 @@
 #include <cassert>
 #include <array>
 #include <fstream>
+#include <vector>
 
 #include <GL/glew.h>
 
@@ -259,6 +260,73 @@ GLuint LoadGeometry()
 	glBindVertexArray(0);
 
 	return VAO;
+}
+
+void GenerateSphereMesh(GLuint Resolution, std::vector<Vertex>& Vertexes)
+{
+	Vertexes.clear();
+
+	constexpr float Pi = glm::pi<float>();
+	constexpr float TwoPi = glm::two_pi<float>();
+	float InvResolution = 1.0f / static_cast<float>(Resolution - 1);
+
+	for (GLuint UIndex = 0; UIndex < Resolution; ++UIndex)
+	{
+		const float U = UIndex * InvResolution;
+		const float Theta = glm::mix(0.0f, Pi, U);
+
+		for (GLuint VIndex = 0; VIndex < Resolution; ++VIndex)
+		{
+			const float V = VIndex * InvResolution;
+			const float Phi = glm::mix(0.0f, TwoPi, V);
+
+			glm::vec3 VertexPosition = {
+				glm::sin(Theta) * glm::cos(Phi),
+				glm::sin(Theta) * glm::sin(Phi),
+				glm::cos(Theta)
+			};
+
+			Vertex Vertex{
+				VertexPosition,
+				glm::vec3(1.0f, 1.0f, 1.0f),
+				glm::vec2(U, V)
+			};
+
+			Vertexes.push_back(Vertex);
+		}
+
+	}
+
+}
+
+GLuint LoadSphere()
+{
+	std::vector<Vertex> Vertexes;
+	GenerateSphereMesh(10, Vertexes);
+
+	GLuint VertexBuffer;
+	glGenBuffers(1, &VertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, Vertexes.size() * sizeof(Vertex), Vertexes.data(), GL_STATIC_DRAW);
+
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+		reinterpret_cast<void*>(offsetof(Vertex, Color)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+		reinterpret_cast<void*>(offsetof(Vertex, UV)));
+
+	glBindVertexArray(0);
+
 }
 
 class FlyCamera
