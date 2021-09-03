@@ -15,8 +15,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-const int Width = 800;
-const int Height = 600;
+int Width = 800;
+int Height = 600;
 
 std::string ReadFile(const char* FilePath)
 {
@@ -299,10 +299,12 @@ void GenerateSphereMesh(GLuint Resolution, std::vector<Vertex>& Vertexes)
 
 }
 
-GLuint LoadSphere()
+GLuint LoadSphere(GLuint& NumVertexes)
 {
 	std::vector<Vertex> Vertexes;
-	GenerateSphereMesh(10, Vertexes);
+	GenerateSphereMesh(1000, Vertexes);
+
+	NumVertexes = Vertexes.size();
 
 	GLuint VertexBuffer;
 	glGenBuffers(1, &VertexBuffer);
@@ -327,6 +329,7 @@ GLuint LoadSphere()
 
 	glBindVertexArray(0);
 
+	return VAO;
 }
 
 class FlyCamera
@@ -429,6 +432,15 @@ void MouseMotionCallback(GLFWwindow* Window, double X, double Y)
 	
 }
 
+void Resize(GLFWwindow* Window, int NewWidth, int NewHeight)
+{
+	Width = NewWidth;
+	Height = NewHeight;
+
+	Camera.AspectRatio = static_cast<float>(Width) / Height;
+	glViewport(0, 0, Width, Height);
+}
+
 int main()
 {
 
@@ -442,6 +454,9 @@ int main()
 	//sign callbacks on GLFW
 	glfwSetMouseButtonCallback(Window, MouseButtonCallback);
 	glfwSetCursorPosCallback(Window, MouseMotionCallback);
+
+	//Call Resize aways when the window aspect ratio change
+	glfwSetFramebufferSizeCallback(Window, Resize);
 
 	//Activate context created on window Window
 	glfwMakeContextCurrent(Window);
@@ -465,11 +480,18 @@ int main()
 	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
+	Resize(Window, Width, Height);
+
 	GLuint ProgramId = LoadShaders("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
 
 	GLuint TextureId = LoadTexture("textures/earth_2k.jpg");
 
 	GLuint QuadVAO = LoadGeometry();
+
+	GLuint SphereNumVertexes = 0;
+	GLuint SphereVAO = LoadSphere(SphereNumVertexes);
+
+	std::cout << "Number of vertexes of sphere" << SphereNumVertexes << std::endl;
 
 	//Model Matrix
 	glm::mat4 ModelMatrix = glm::identity<glm::mat4>();
@@ -513,12 +535,14 @@ int main()
 		GLint TextureSamplerLoc = glGetUniformLocation(ProgramId, "TextureSampler");
 		glUniform1i(TextureSamplerLoc, 0);
 
-		glBindVertexArray(QuadVAO);
+		//glBindVertexArray(QuadVAO);
+		glBindVertexArray(SphereVAO);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		//glDrawArrays(GL_TRIANGLES, 0, Quad.size());
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		glDrawArrays(GL_POINTS, 0, SphereNumVertexes);
 
 		glBindVertexArray(0);
 
