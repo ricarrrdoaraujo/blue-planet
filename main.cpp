@@ -262,9 +262,13 @@ GLuint LoadGeometry()
 	return VAO;
 }
 
-void GenerateSphereMesh(GLuint Resolution, std::vector<Vertex>& Vertexes)
+void GenerateSphereMesh(
+	GLuint Resolution, 
+	std::vector<Vertex>& Vertexes,
+	std::vector<glm::ivec3>& Indexes)
 {
 	Vertexes.clear();
+	Indexes.clear();
 
 	constexpr float Pi = glm::pi<float>();
 	constexpr float TwoPi = glm::two_pi<float>();
@@ -289,7 +293,7 @@ void GenerateSphereMesh(GLuint Resolution, std::vector<Vertex>& Vertexes)
 			Vertex Vertex{
 				VertexPosition,
 				glm::vec3(1.0f, 1.0f, 1.0f),
-				glm::vec2(U, V)
+				glm::vec2( 1.0f - U, V)
 			};
 
 			Vertexes.push_back(Vertex);
@@ -297,19 +301,44 @@ void GenerateSphereMesh(GLuint Resolution, std::vector<Vertex>& Vertexes)
 
 	}
 
+	for (GLuint U = 0; U < Resolution - 1; ++U)
+	{
+		for (GLuint V = 0; V < Resolution - 1; ++U)
+		{
+			GLuint P0 = U + V * Resolution;
+			GLuint P1 = (U + 1) + V * Resolution;
+			GLuint P2 = (U + 1) + (V + 1) * Resolution;
+			GLuint P3 = U + (V + 1) * Resolution;
+
+			Indexes.push_back(glm::ivec3{ P0, P1, P3 });
+			Indexes.push_back(glm::ivec3{ P3, P1, P2 });
+		}
+		
+	}
+
 }
 
-GLuint LoadSphere(GLuint& NumVertexes)
+GLuint LoadSphere(GLuint& NumVertexes, GLuint& NumIndexes)
 {
 	std::vector<Vertex> Vertexes;
-	GenerateSphereMesh(1000, Vertexes);
+	std::vector<glm::ivec3> Triangles;
+	GenerateSphereMesh(50, Vertexes, Triangles);
 
 	NumVertexes = Vertexes.size();
+	NumIndexes = Triangles.size() * 3;
 
 	GLuint VertexBuffer;
 	glGenBuffers(1, &VertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, Vertexes.size() * sizeof(Vertex), Vertexes.data(), GL_STATIC_DRAW);
+
+	GLuint ElementBuffer;
+	glGenBuffers(1, &ElementBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				NumIndexes * sizeof(GLuint), //Triangles.size() * sizeof(glm::ivec3)
+				Triangles.data(),
+				GL_STATIC_DRAW);
 
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
@@ -320,6 +349,7 @@ GLuint LoadSphere(GLuint& NumVertexes)
 	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
@@ -489,12 +519,15 @@ int main()
 	GLuint QuadVAO = LoadGeometry();
 
 	GLuint SphereNumVertexes = 0;
-	GLuint SphereVAO = LoadSphere(SphereNumVertexes);
+	GLuint SphereNumIndexes = 0;
+	GLuint SphereVAO = LoadSphere(SphereNumVertexes, SphereNumIndexes);
 
 	std::cout << "Number of vertexes of sphere" << SphereNumVertexes << std::endl;
+	std::cout << "Number of indexes of sphere" << SphereNumIndexes << std::endl;
 
 	//Model Matrix
-	glm::mat4 ModelMatrix = glm::identity<glm::mat4>();
+	glm::mat4 I = glm::identity<glm::mat4>();
+	glm::mat4 ModelMatrix = glm::rotate(I, glm::radians(90.0f), glm::vec3{ 1, 0, 0});
 
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -542,7 +575,9 @@ int main()
 
 		//glDrawArrays(GL_TRIANGLES, 0, Quad.size());
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-		glDrawArrays(GL_POINTS, 0, SphereNumVertexes);
+		//glDrawArrays(GL_POINTS, 0, SphereNumVertexes);
+		glDrawElements(GL_TRIANGLES, SphereNumIndexes, GL_UNSIGNED_INT, nullptr);
+
 
 		glBindVertexArray(0);
 
