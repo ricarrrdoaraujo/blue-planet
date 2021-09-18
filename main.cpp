@@ -553,6 +553,7 @@ int main()
 	//Model Matrix
 	glm::mat4 I = glm::identity<glm::mat4>();
 	glm::mat4 ModelMatrix = glm::rotate(I, glm::radians(90.0f), glm::vec3{ 1, 0, 0});
+	glm::mat4 ModelMatrix2 = glm::translate(I, glm::vec3{ 10,0,0 });
 
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -563,6 +564,10 @@ int main()
 	// Enable Backface culling
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+	//enable Z-Buffer
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
 	// Start event loop
 	while (!glfwWindowShouldClose(Window))
@@ -575,7 +580,7 @@ int main()
 		}
 
 		//Clear framebuffer. GL_COLOR_BUFFER_BIT clear color buffer and fullfil with the color defined on glClearColor
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Activate shader program
 		glUseProgram(ProgramId);
@@ -601,8 +606,12 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, Quad.size());
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 		//glDrawArrays(GL_POINTS, 0, SphereNumVertexes);
+		glDepthFunc(GL_LESS);
 		glDrawElements(GL_TRIANGLES, SphereNumIndexes, GL_UNSIGNED_INT, nullptr);
 
+		//show a second sphere
+		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection * ModelMatrix2));
+		glDrawElements(GL_TRIANGLES, SphereNumIndexes, GL_UNSIGNED_INT, nullptr);
 
 		glBindVertexArray(0);
 
