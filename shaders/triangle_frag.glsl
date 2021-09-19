@@ -30,7 +30,7 @@ void main()
 
 	// Specular Term (R . V) ^ alpha
 	float Alpha = 50.0f;
-	float Specular = pow(dot(R, V), Alpha);
+	float Specular = pow(max(dot(R, V), 0.0), Alpha);
 	Specular = max(Specular, 0.0);
 
 
