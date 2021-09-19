@@ -181,6 +181,7 @@ GLuint LoadTexture(const char* TextureFile)
 struct Vertex
 {
 	glm::vec3 Position;
+	glm::vec3 Normal;
 	glm::vec3 Color;
 	glm::vec2 UV;
 };
@@ -191,18 +192,22 @@ GLuint LoadGeometry()
 	//{Position, Color, UV}
 	std::array<Vertex, 6> Quad = {
 		Vertex{ glm::vec3{ -1.0f, -1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f },
 				glm::vec3{1.0f, 0.0f, 0.0f},
 				glm::vec2{0.0f, 0.0f}},
 
 		Vertex{ glm::vec3{ 1.0f, -1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f },
 				glm::vec3{0.0f, 1.0f, 0.0f},
 				glm::vec2{1.0f, 0.0f}},
 
 		Vertex{ glm::vec3{ 1.0f, 1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f },
 				glm::vec3{1.0f, 0.0f, 0.0f},
 				glm::vec2{1.0f, 1.0f}},
 
 		Vertex{ glm::vec3{ -1.0f, 1.0f, 0.0f },
+				glm::vec3{0.0f, 0.0f, 1.0f },
 				glm::vec3{0.0f, 0.0f, 1.0f},
 				glm::vec2{0.0f, 1.0f}},
 	};
@@ -243,6 +248,7 @@ GLuint LoadGeometry()
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
 
 	//tells opengl that VertexBuffer will be the buffer active in the moment
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
@@ -252,9 +258,11 @@ GLuint LoadGeometry()
 	// In the case of array Triangles is contiguous in memory, is just necessary to inform how much vertexes 
 	// is needed to draw the triangle
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex), 
+		reinterpret_cast<void*>(offsetof(Vertex, Normal)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
 		reinterpret_cast<void*>(offsetof(Vertex, Color)));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
 		reinterpret_cast<void*>(offsetof(Vertex, UV)));
 
 	glBindVertexArray(0);
@@ -274,32 +282,33 @@ void GenerateSphereMesh(
 	constexpr float TwoPi = glm::two_pi<float>();
 	float InvResolution = 1.0f / static_cast<float>(Resolution - 1);
 
-	/*for (GLuint UIndex = 0; UIndex < Resolution; ++UIndex)
-	{
-		const float U = UIndex * InvResolution;
-		const float Theta = glm::mix(0.0f, Pi, U);
+	//for (GLuint UIndex = 0; UIndex < Resolution; ++UIndex)
+	//{
+	//	const float U = UIndex * InvResolution;
+	//	const float Theta = glm::mix(0.0f, Pi, U);
 
-		for (GLuint VIndex = 0; VIndex < Resolution; ++VIndex)
-		{
-			const float V = VIndex * InvResolution;
-			const float Phi = glm::mix(0.0f, TwoPi, V);
+	//	for (GLuint VIndex = 0; VIndex < Resolution; ++VIndex)
+	//	{
+	//		const float V = VIndex * InvResolution;
+	//		const float Phi = glm::mix(0.0f, TwoPi, V);
 
-			glm::vec3 VertexPosition = {
-				glm::sin(Theta) * glm::cos(Phi),
-				glm::sin(Theta) * glm::sin(Phi),
-				glm::cos(Theta)
-			};
+	//		glm::vec3 VertexPosition = {
+	//			glm::sin(Theta) * glm::cos(Phi),
+	//			glm::sin(Theta) * glm::sin(Phi),
+	//			glm::cos(Theta)
+	//		};
 
-			Vertex Vertex{
-				VertexPosition,
-				glm::vec3(1.0f, 1.0f, 1.0f),
-				glm::vec2( 1.0f - U, V)
-			};
+	//		Vertex Vertex{
+	//			VertexPosition,
+	//			glm::normalize(VertexPosition),
+	//			glm::vec3(1.0f, 1.0f, 1.0f),
+	//			glm::vec2( 1.0f - U, V)
+	//		};
 
-			Vertexes.push_back(Vertex);
-		}
+	//		Vertexes.push_back(Vertex);
+	//	}
 
-	}*/
+	//}
 
 	for (GLuint UIndex = 0; UIndex < Resolution; ++UIndex)
 	{
@@ -320,6 +329,7 @@ void GenerateSphereMesh(
 
 			Vertexes.push_back(Vertex{
 				VertexPosition,
+				glm::normalize(VertexPosition),
 				glm::vec3{ 1.0f, 1.0f, 1.0f },
 				glm::vec2{ 1.0f - U, V }
 				});
@@ -372,14 +382,17 @@ GLuint LoadSphere(GLuint& NumVertexes, GLuint& NumIndexes)
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBuffer);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+		reinterpret_cast<void*>(offsetof(Vertex, Normal)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_TRUE, sizeof(Vertex),
 		reinterpret_cast<void*>(offsetof(Vertex, Color)));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_TRUE, sizeof(Vertex),
 		reinterpret_cast<void*>(offsetof(Vertex, UV)));
 
 	glBindVertexArray(0);
@@ -417,11 +430,15 @@ public:
 		Direction = YawRotation * PitchRotation * glm::vec4{ Direction, 0.0f };
 	}
 
+	glm::mat4 GetView() const
+	{
+		return glm::lookAt(Location, Location + Direction, Up);
+	}
+
 	glm::mat4 GetViewProjection() const
 	{
-		glm::mat4 View = glm::lookAt(Location, Location + Direction, Up);
 		glm::mat4 Projection = glm::perspective(FieldOfView, AspectRatio, Near, Far);
-		return Projection * View;
+		return Projection * GetView();
 	}
 
 	//Iterativity parameters
@@ -553,7 +570,6 @@ int main()
 	//Model Matrix
 	glm::mat4 I = glm::identity<glm::mat4>();
 	glm::mat4 ModelMatrix = glm::rotate(I, glm::radians(90.0f), glm::vec3{ 1, 0, 0});
-	glm::mat4 ModelMatrix2 = glm::translate(I, glm::vec3{ 10,0,0 });
 
 	//Define background color
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -585,12 +601,15 @@ int main()
 		// Activate shader program
 		glUseProgram(ProgramId);
 
+		glm::mat4 NormalMatrix = glm::inverse(glm::transpose(Camera.GetView() * ModelMatrix));
 		glm::mat4 ViewProjectionMatrix = Camera.GetViewProjection();
-
 		glm::mat4 ModelViewProjection = ViewProjectionMatrix * ModelMatrix;
 
 		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramId, "ModelViewProjection");
 		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
+
+		GLint NormalMatrixLoc = glGetUniformLocation(ProgramId, "Normal Matrix");
+		glUniformMatrix4fv(NormalMatrixLoc, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, TextureId);
@@ -607,10 +626,6 @@ int main()
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 		//glDrawArrays(GL_POINTS, 0, SphereNumVertexes);
 		glDepthFunc(GL_LESS);
-		glDrawElements(GL_TRIANGLES, SphereNumIndexes, GL_UNSIGNED_INT, nullptr);
-
-		//show a second sphere
-		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection * ModelMatrix2));
 		glDrawElements(GL_TRIANGLES, SphereNumIndexes, GL_UNSIGNED_INT, nullptr);
 
 		glBindVertexArray(0);

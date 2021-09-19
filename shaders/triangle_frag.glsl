@@ -2,6 +2,7 @@
 
 uniform sampler2D TextureSampler;
 
+in vec3 Normal;
 in vec3 Color;
 in vec2 UV;
 
@@ -13,5 +14,5 @@ void main()
 	vec3 TextureColor = texture(TextureSampler, UV).rgb;
 	vec3 FinalColor = ColorIntensity * TextureColor;
 
-	OutColor = vec4(FinalColor, 1.0);
+	OutColor = vec4(normalize(Normal), 1.0);
 }
