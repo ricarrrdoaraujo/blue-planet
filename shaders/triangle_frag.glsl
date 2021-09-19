@@ -1,6 +1,11 @@
 #version 330 core
 
 uniform sampler2D TextureSampler;
+uniform sampler2D CloudsTexture;
+
+uniform float Time;
+
+uniform vec2 CloudsRotationSpeed = vec2(0.001, 0.0);
 
 in vec3 Normal;
 in vec3 Color;
@@ -35,8 +40,9 @@ void main()
 
 
 	//float ColorIntensity = 1.0f;
-	vec3 TextureColor = texture(TextureSampler, UV).rgb;
-	vec3 FinalColor = TextureColor * LightIntensity * Lambertian + Specular;
+	vec3 SurfaceColor = texture(TextureSampler, UV).rgb;
+	vec3 CloudColor = texture(CloudsTexture, UV + Time * CloudsRotationSpeed).rgb;
+	vec3 FinalColor = (SurfaceColor + CloudColor)* LightIntensity * Lambertian + Specular;
 
 	OutColor = vec4(FinalColor, 1.0);
 }

@@ -563,6 +563,7 @@ int main()
 	GLuint ProgramId = LoadShaders("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
 
 	GLuint TextureId = LoadTexture("textures/earth_2k.jpg");
+	GLuint CloudTextureId = LoadTexture("textures/earth_clouds_2k.jpg");
 
 	GLuint QuadVAO = LoadGeometry();
 
@@ -616,6 +617,9 @@ int main()
 		glm::mat4 ViewProjectionMatrix = Camera.GetViewProjection();
 		glm::mat4 ModelViewProjection = ViewProjectionMatrix * ModelMatrix;
 
+		GLint TimeLoc = glGetUniformLocation(ProgramId, "Time");
+		glUniform1f(TimeLoc, CurrentTime);
+
 		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramId, "ModelViewProjection");
 		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
 
@@ -625,8 +629,14 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, TextureId);
 
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, CloudTextureId);
+
 		GLint TextureSamplerLoc = glGetUniformLocation(ProgramId, "TextureSampler");
 		glUniform1i(TextureSamplerLoc, 0);
+
+		GLint CloudTextureLoc = glGetUniformLocation(ProgramId, "CloudsTexture");
+		glUniform1i(CloudTextureLoc, 1);
 
 		GLint LightDirectionLoc = glGetUniformLocation(ProgramId, "LightDirection");
 		glUniform3fv(LightDirectionLoc, 1, 
