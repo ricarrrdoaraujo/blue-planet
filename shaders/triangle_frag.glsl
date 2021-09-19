@@ -21,9 +21,22 @@ void main()
 
 	float Lambertian = max(dot(N, L), 0.0);
 
+	//Vector V
+	vec3 ViewDirection = vec3(0.0f, 0.0f, -1.0f);
+	vec3 V = -ViewDirection;
+
+	//Vector R(Reflection)
+	vec3 R = reflect(-L, N);
+
+	// Specular Term (R . V) ^ alpha
+	float Alpha = 50.0f;
+	float Specular = pow(dot(R, V), Alpha);
+	Specular = max(Specular, 0.0);
+
+
 	//float ColorIntensity = 1.0f;
 	vec3 TextureColor = texture(TextureSampler, UV).rgb;
-	vec3 FinalColor = TextureColor * LightIntensity * Lambertian;
+	vec3 FinalColor = TextureColor * LightIntensity * Lambertian + Specular;
 
 	OutColor = vec4(FinalColor, 1.0);
 }
