@@ -186,6 +186,12 @@ struct Vertex
 	glm::vec2 UV;
 };
 
+struct DirectionalLight
+{
+	glm::vec3 Direction;
+	GLfloat Intensity;
+};
+
 GLuint LoadGeometry()
 {
 	//Define a triangle in normalized coordinates
@@ -585,6 +591,11 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	//Create a directional light source
+	DirectionalLight Light;
+	Light.Direction = glm::vec3{ 0.0f, 0.0f, -1.0f };
+	Light.Intensity = 1.0f;
+
 	// Start event loop
 	while (!glfwWindowShouldClose(Window))
 	{
@@ -608,7 +619,7 @@ int main()
 		GLint ModelViewProjectionLoc = glGetUniformLocation(ProgramId, "ModelViewProjection");
 		glUniformMatrix4fv(ModelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(ModelViewProjection));
 
-		GLint NormalMatrixLoc = glGetUniformLocation(ProgramId, "Normal Matrix");
+		GLint NormalMatrixLoc = glGetUniformLocation(ProgramId, "NormalMatrix");
 		glUniformMatrix4fv(NormalMatrixLoc, 1, GL_FALSE, glm::value_ptr(NormalMatrix));
 
 		glActiveTexture(GL_TEXTURE0);
@@ -616,6 +627,13 @@ int main()
 
 		GLint TextureSamplerLoc = glGetUniformLocation(ProgramId, "TextureSampler");
 		glUniform1i(TextureSamplerLoc, 0);
+
+		GLint LightDirectionLoc = glGetUniformLocation(ProgramId, "LightDirection");
+		glUniform3fv(LightDirectionLoc, 1, 
+			glm::value_ptr(Camera.GetView() * glm::vec4{ Light.Direction, 0.0f }));
+
+		GLint LightIntensityLoc = glGetUniformLocation(ProgramId, "LightIntensity");
+		glUniform1f(LightIntensityLoc, Light.Intensity);
 
 		//glBindVertexArray(QuadVAO);
 		glBindVertexArray(SphereVAO);
